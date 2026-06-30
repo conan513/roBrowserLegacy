@@ -81,7 +81,9 @@ export default defineConfig({
 		outDir: 'dist/Web',
 		rollupOptions: {
 			input: {
-				main: path.resolve(__dirname, 'index.html')
+				pwa: path.resolve(__dirname, 'applications/pwa/index.html'),
+				api: path.resolve(__dirname, 'applications/api/api.html'),
+				demo: path.resolve(__dirname, 'applications/browser-examples/demo.html')
 			}
 		}
 	},
