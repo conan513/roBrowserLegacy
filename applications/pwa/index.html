@@ -104,17 +104,6 @@
 		<script type="text/javascript" src="../api/api.js"></script>
 		<script type="text/javascript" src="Config.js"></script>
 		<script type="text/javascript">
-			// Load optional Config.local.js for overrides (fails silently if not present)
-			(function () {
-				var script = document.createElement('script');
-				script.src = 'Config.local.js';
-				script.onerror = function () {
-					console.log('Config.local.js not found, using defaults from Config.js');
-				};
-				document.head.appendChild(script);
-			})();
-		</script>
-		<script type="text/javascript">
 			function deepMerge(target, source) {
 				for (var key in source) {
 					if (source.hasOwnProperty(key)) {
@@ -161,6 +150,37 @@
 				xhr.send();
 			};
 
+			// Two signals must both fire before initialize() runs:
+			//   1. Config.local.js has loaded (or failed) — configReady
+			//   2. window 'load' event has fired — windowReady
+			// Without waiting for both, ROConfigLocal may be undefined when
+			// initialize() runs (race condition), causing skipIntro to be ignored.
+			var _gitHash = 'NO_INFO';
+			var _configReady = false;
+			var _windowReady = false;
+
+			function _tryInitialize() {
+				if (_configReady && _windowReady) {
+					initialize(_gitHash);
+				}
+			}
+
+			// Load optional Config.local.js for overrides (fails silently if not present)
+			(function () {
+				var script = document.createElement('script');
+				script.src = 'Config.local.js';
+				script.onload = function () {
+					_configReady = true;
+					_tryInitialize();
+				};
+				script.onerror = function () {
+					console.log('Config.local.js not found, using defaults from Config.js');
+					_configReady = true;
+					_tryInitialize();
+				};
+				document.head.appendChild(script);
+			})();
+
 			window.addEventListener(
 				'load',
 				function () {
@@ -168,18 +188,18 @@
 					getJSON(
 						'https://api.github.com/repos/MrAntares/roBrowserLegacy/commits/master',
 						function (err, data) {
-							var gitHash = 'NO_INFO';
 							if (err !== null) {
 								console.warn('Error reading latest GIT hash.');
 							} else {
 								if (data && data.sha) {
-									gitHash = data.sha;
-									console.log('Latest GIT hash: ' + gitHash);
+									_gitHash = data.sha;
+									console.log('Latest GIT hash: ' + _gitHash);
 								} else {
 									console.warn('No hash found in response');
 								}
 							}
-							initialize(gitHash);
+							_windowReady = true;
+							_tryInitialize();
 						}
 					);
 				},
