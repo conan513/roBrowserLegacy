@@ -40,8 +40,7 @@ RUN <<'EOF' cat >> /etc/apache2/sites-available/000-default.conf
         </IfModule>
 
         <IfModule mod_speling.c>
-            CheckSpelling On
-            CheckCaseOnly On
+            CheckSpelling Off
         </IfModule>
     </Directory>
 
