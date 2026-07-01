@@ -1,0 +1,44 @@
+<div class="register-overlay">
+	<div id="win_register" class="register-box">
+		<div class="header">
+			<span class="title">Account Registration</span>
+			<button class="btn-close">&times;</button>
+		</div>
+		<form class="register-form" onsubmit="return false;">
+			<div class="error-msg"></div>
+
+			<div class="input-group">
+				<label for="reg-user">Username</label>
+				<input id="reg-user" class="reg-input" type="text" placeholder="Enter username..." autocomplete="off" />
+			</div>
+
+			<div class="input-group">
+				<label for="reg-pass">Password</label>
+				<input id="reg-pass" class="reg-input" type="password" placeholder="Enter password..." />
+			</div>
+
+			<div class="input-group">
+				<label for="reg-confirm">Confirm Password</label>
+				<input id="reg-confirm" class="reg-input" type="password" placeholder="Repeat password..." />
+			</div>
+
+			<div class="gender-section">
+				<span class="gender-label">Select Gender</span>
+				<div class="gender-options">
+					<button type="button" class="gender-btn male active" data-gender="male">
+						<span class="gender-icon">♂</span>
+						Male
+					</button>
+					<button type="button" class="gender-btn female" data-gender="female">
+						<span class="gender-icon">♀</span>
+						Female
+					</button>
+				</div>
+			</div>
+
+			<div class="actions">
+				<button type="submit" class="submit-btn">Register</button>
+			</div>
+		</form>
+	</div>
+</div>

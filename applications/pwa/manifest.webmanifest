@@ -1,8 +1,8 @@
 {
-	"name": "roBrowser Progressive Web App",
-	"short_name": "roBrowser",
+	"name": "Single Player Project - Ragnarok Online",
+	"short_name": "SPP-RO",
 	"start_url": "./",
-	"description": "roBrowser Progressive Web App.",
+	"description": "Single Player Project - Ragnarok Online.",
 	"display": "fullscreen",
 	"theme_color": "#4169e1",
 	"background_color": "#000000",
@@ -32,11 +32,7 @@
 			"description": "roBrowser Progressive Web App."
 		}
 	],
-	"protocol_handlers": [
-		{
-			"protocol": "http",
-			"url": "./"
-		}
-	],
-	"display_override": ["window-controls-overlay"]
+	"display_override": [
+		"window-controls-overlay"
+	]
 }

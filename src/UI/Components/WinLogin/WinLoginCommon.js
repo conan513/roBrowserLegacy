@@ -14,6 +14,7 @@ import KEYS from 'Controls/KeyEventHandler.js';
 import UIManager from 'UI/UIManager.js';
 import GUIComponent from 'UI/GUIComponent.js';
 import 'UI/Elements/Elements.js';
+import WinRegister from 'UI/Components/WinRegister/WinRegister.js';
 
 export function createWinLogin({ name, htmlText, cssText }) {
 	const Component = new GUIComponent(name, cssText);
@@ -134,26 +135,14 @@ export function createWinLogin({ name, htmlText, cssText }) {
 	}
 
 	function signup() {
-		const url = Configs.get('registrationweb');
-		if (url) {
-			UIManager.showPromptBox(
-				DB.getMessage(662),
-				'ok',
-				'cancel',
-				() => {
-					window.open(url);
-				},
-				null
-			);
-		} else {
-			UIManager.showPromptBox(
-				'No registration URL was provided.\nIf this server uses simplified registration, then input your new:\n - Username followed by _M for Male and _F for Female account (Eg: MyUser_M)\n - Password.',
-				'ok',
-				'cancel',
-				null,
-				null
-			);
-		}
+		// Open the in-game registration modal.
+		// Upon successful registration, the _M/_F suffix is appended to the username
+		// and the connection request is forwarded — rAthena auto-creates the account.
+		WinRegister.onSubmitRequest = function(username, password, gender) {
+			const suffix = gender === 'female' ? '_F' : '_M';
+			Component.onConnectionRequest(username + suffix, password);
+		};
+		WinRegister.append();
 	}
 
 	Component.onConnectionRequest = function onConnectionRequest() {};

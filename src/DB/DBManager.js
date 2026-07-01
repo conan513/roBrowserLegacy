@@ -6366,14 +6366,61 @@ function loadSkillTreeView(filename, callback, onEnd) {
 				console.log(`Loading file "${DB.LUA_PATH}skillinfoz/jobinheritlist.lub"...`);
 				const buffer = file instanceof ArrayBuffer ? new Uint8Array(file) : file;
 
+				// Create automatic JT_ mappings on Lua context before executing jobinheritlist
+				const ctx = lua.ctx;
+				const jobIdWithJT = { ...JobId };
+				for (const [key, value] of Object.entries(JobId)) {
+					jobIdWithJT[`JT_${key}`] = value;
+				}
+				ctx.JOBID = jobIdWithJT;
+
+				// Back up the JS-defined JOBID in Lua global state, and set a metatable on _G
+				// to intercept any assignments to JOBID (e.g. from jobinheritlist.lub).
+				// This wraps the newly assigned JOBID table in a metatable that falls back
+				// to the backup JT_* values when missing (like Druid/Karnos/Alitea which are
+				// missing in some clients' jobinheritlist.lub).
+				await lua.doString(`
+					__JOBID_BACKUP = JOBID
+					JOBID = nil
+					setmetatable(_G, {
+						__newindex = function(t, k, v)
+							if k == "JOBID" then
+								rawset(t, k, setmetatable(v, {
+									__index = function(tbl, key)
+										local backup = rawget(t, "__JOBID_BACKUP")
+										if backup then
+											return backup[key]
+										end
+									end
+								}))
+							else
+								rawset(t, k, v)
+							end
+						end
+					})
+				`);
+
 				// Mount and execute jobinheritlist.lub
 				lua.mountFile('jobinheritlist.lub', buffer);
 				await lua.doFile('jobinheritlist.lub');
+
+				// Clean up our metatable hook on _G so it doesn't affect other modules
+				await lua.doString(`
+					setmetatable(_G, nil)
+					__JOBID_BACKUP = nil
+				`);
 
 				// Now load skilltreeview.lub
 				loadSkillTreeViewData(filename, callback, onEnd);
 			} catch (error) {
 				console.error('[loadSkillTreeView - jobinheritlist] Error: ', error);
+				// Make sure to clean up metatable even on error
+				try {
+					lua.doStringSync(`
+						setmetatable(_G, nil)
+						__JOBID_BACKUP = nil
+					`);
+				} catch (e) {}
 				onEnd();
 			}
 		},

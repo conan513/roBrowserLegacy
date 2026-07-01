@@ -463,7 +463,7 @@ function onOpenBuyingResult(pkt) {
 /**
  * Received items list to from Marketshop NPC
  *
- * @param {object} pkt - PACKET.ZC.NPC_MARKET_OPEN2
+ * @param {object} pkt - PACKET.ZC.NPC_MARKET_OPEN or PACKET.ZC.NPC_MARKET_OPEN2
  */
 function onMarketShop(pkt) {
 	// Initialize the NPC store for Market Shop
@@ -535,7 +535,8 @@ export default function MainEngine() {
 	Network.hookPacket(PACKET.ZC.PC_PURCHASE_ITEMLIST_FROMMC3, onVendingStoreList);
 	Network.hookPacket(PACKET.ZC.ACK_ITEMLIST_BUYING_STORE, onBuyingStoreList);
 	Network.hookPacket(PACKET.ZC.FAILED_TRADE_BUYING_STORE_TO_SELLER, onSellToBuyingStoreResult);
-	Network.hookPacket(PACKET.ZC.NPC_MARKET_OPEN2, onMarketShop);
+	Network.hookPacket(PACKET.ZC.NPC_MARKET_OPEN, onMarketShop);  // 0x9d5 - used by special merchants (e.g. Talisman Merchant)
+	Network.hookPacket(PACKET.ZC.NPC_MARKET_OPEN2, onMarketShop); // 0x0b7a - newer market packet
 	Network.hookPacket(PACKET.ZC.NPC_MARKET_PURCHASE_RESULT, onMarketShopResult);
 	Network.hookPacket(PACKET.ZC.NPC_MARKET_PURCHASE_RESULT2, onMarketShopResult);
 	Network.hookPacket(PACKET.ZC.NPC_BARTER_MARKET_ITEMINFO, onBarterBuyList);
