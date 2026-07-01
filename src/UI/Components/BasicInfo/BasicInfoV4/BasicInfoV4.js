@@ -32,6 +32,8 @@ import Navigation from 'UI/Components/Navigation/Navigation.js';
 import SkillList from 'UI/Components/SkillList/SkillList.js';
 import Quest from 'UI/Components/Quest/Quest.js';
 import Achievement from 'UI/Components/Achievement/Achievement.js';
+import ShortCutOption from 'UI/Components/ShortCutOption/ShortCutOption.js';
+import TipBox from 'UI/Components/TipBox/TipBox.js';
 import htmlText from './BasicInfoV4.html?raw';
 import cssText from './BasicInfoV4.css?raw';
 
@@ -144,6 +146,25 @@ BasicInfoV4.init = function init() {
 						Achievement.toggle();
 					}
 					break;
+				case 'shortcut':
+					if (!ShortCutOption._host || !ShortCutOption._host.parentNode) {
+						ShortCutOption.append();
+					} else {
+						ShortCutOption.remove();
+					}
+					break;
+				case 'tipbox':
+					TipBox.toggle();
+					break;
+				case 'battle':
+					UIManager.showMessageBox('Battleground is not available on this server.', 'Ok');
+					break;
+				case 'replay':
+					UIManager.showMessageBox('Replay recording is not supported.', 'Ok');
+					break;
+				case 'agency':
+					UIManager.showMessageBox("Adventurer's Agency is not available.", 'Ok');
+					break;
 			}
 		});
 	});
@@ -191,11 +212,8 @@ BasicInfoV4.onAppend = function onAppend() {
 		if (btnClose) btnClose.style.display = 'none';
 	}
 
-	const hideIds = ['battle', 'replay', 'tipbox', 'shortcut', 'agency'];
-	hideIds.forEach(id => {
-		const el = root.querySelector(`#${id}`);
-		if (el) el.style.display = 'none';
-	});
+	// Auto-show TipBox on startup if preferred
+	TipBox.checkStartup();
 };
 
 /**

@@ -82,12 +82,12 @@ ItemCompare.onAppend = function onAppend() {
 	resize(ItemCompare.ui.find('.description-inner').height() + 45);
 
 	// Position ItemCompare next to ItemInfo
-	const itemInfoPosition = ItemInfo.ui.offset();
-	const itemInfoWidth = ItemInfo.ui.outerWidth();
+	const itemInfoPosition = (ItemInfo.ui && typeof ItemInfo.ui.offset === 'function') ? ItemInfo.ui.offset() : null;
+	const itemInfoWidth = (ItemInfo.ui && typeof ItemInfo.ui.outerWidth === 'function') ? ItemInfo.ui.outerWidth() : 0;
 	ItemCompare.ui.css({
 		position: 'absolute',
-		top: itemInfoPosition.top ? itemInfoPosition.top : 200,
-		left: itemInfoPosition.left ? itemInfoPosition.left - itemInfoWidth : 200 // Adjust spacing as needed
+		top: (itemInfoPosition && itemInfoPosition.top) ? itemInfoPosition.top : 200,
+		left: (itemInfoPosition && itemInfoPosition.left) ? itemInfoPosition.left - itemInfoWidth : 200 // Adjust spacing as needed
 	});
 };
 
@@ -108,6 +108,7 @@ ItemCompare.init = function init() {
 	// Ask to see card.
 	this.ui.find('.view').click(
 		function () {
+			if (!this.item) return;
 			CardIllustration.append();
 			CardIllustration.setCard(this.item);
 		}.bind(this)

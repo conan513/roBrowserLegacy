@@ -97,9 +97,9 @@ class Renderer {
 	static height = 0;
 
 	/**
-	 * @type {number} store the last time the windows was resize (to avoid to resize the context on each 16ms)
+	 * @type {number} store the requestAnimationFrame ID for resizing
 	 */
-	static resizeTimeOut = 0;
+	static resizeRAF = 0;
 
 	/**
 	 * @type {number} unique identifier of the current render callback (can be used for cancelAnimationFrame/clearInterval)
@@ -262,11 +262,16 @@ class Renderer {
 	}
 
 	/**
-	 * Ask for resizing the window, avoid flooding the function (can flood the context), wait for 500ms each time
+	 * Ask for resizing the window, throttled via requestAnimationFrame to update instantly and smoothly
 	 */
 	static onResize() {
-		Events.clearTimeout(this.resizeTimeOut);
-		this.resizeTimeOut = Events.setTimeout(this.resize.bind(this), 500);
+		if (this.resizeRAF) {
+			_cancelAnimationFrame(this.resizeRAF);
+		}
+		this.resizeRAF = _requestAnimationFrame(() => {
+			this.resize();
+			this.resizeRAF = 0;
+		});
 	}
 
 	/**

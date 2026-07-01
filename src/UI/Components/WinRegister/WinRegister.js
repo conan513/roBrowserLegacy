@@ -105,8 +105,8 @@ WinRegister.onAppend = function onAppend() {
 	this._host.style.position = 'absolute';
 	this._host.style.top = '0';
 	this._host.style.left = '0';
-	this._host.style.width = Renderer.width + 'px';
-	this._host.style.height = Renderer.height + 'px';
+	this._host.style.width = '100%';
+	this._host.style.height = '100%';
 
 	// Guarantee this is always the topmost element — higher than any UI component
 	// (the framework uses z-index values starting at 50, so 99999 is always on top)

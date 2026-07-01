@@ -163,7 +163,9 @@ class UIManager {
 			const component = this.components[keys[i]];
 			const el = component.ui ? component.ui[0] : null;
 			if (!el) continue;
-			ClampToViewport(el, WIDTH, HEIGHT, component.magnet);
+			if (component._isDraggable) {
+				ClampToViewport(el, WIDTH, HEIGHT, component.magnet);
+			}
 			if (component.onResize) {
 				component.onResize();
 			}

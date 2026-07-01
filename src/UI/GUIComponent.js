@@ -1185,6 +1185,18 @@ class GUIComponent {
 			height() {
 				return host.getBoundingClientRect().height;
 			},
+			outerWidth(includeMargin) {
+				const rect = host.getBoundingClientRect();
+				if (!includeMargin) return rect.width;
+				const style = window.getComputedStyle(host);
+				return rect.width + parseFloat(style.marginLeft) + parseFloat(style.marginRight);
+			},
+			outerHeight(includeMargin) {
+				const rect = host.getBoundingClientRect();
+				if (!includeMargin) return rect.height;
+				const style = window.getComputedStyle(host);
+				return rect.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+			},
 
 			is(selector) {
 				if (selector === ':visible') {

@@ -70,6 +70,7 @@ function UIComponent(name, htmlText, cssText) {
 		LEFT: false,
 		RIGHT: false
 	};
+	this._isDraggable = false;
 }
 
 /**
@@ -382,7 +383,7 @@ UIComponent.prototype.append = function append(target) {
 	}, 0);
 
 	//Fix position after append (screen changed since last time and it loads invalid positions)
-	if (this.ui) {
+	if (this.ui && this._isDraggable) {
 		const x = this.ui.offset().left;
 		const y = this.ui.offset().top;
 		const width = this.ui.width();
@@ -537,6 +538,7 @@ UIComponent.prototype.off = function off(type) {
  * Drag an element
  */
 UIComponent.prototype.draggable = function draggable(element) {
+	this._isDraggable = true;
 	const container = jQuery(this.ui).filter(function () {
 		return this.nodeType === 1;
 	});

@@ -40,8 +40,9 @@ CardIllustration.init = function init() {
  * @param {object} item
  */
 CardIllustration.setCard = function setCard(item) {
+	if (!item) return;
 	const root = this.getRoot();
-	root.querySelector('.titlebar .text').textContent = item.identifiedDisplayName;
+	root.querySelector('.titlebar .text').textContent = item.identifiedDisplayName || '';
 	root.querySelector('.content').style.backgroundImage = 'none';
 
 	Client.loadFile(`${DB.INTERFACE_PATH}cardbmp/${item.illustResourcesName}.bmp`, data => {

@@ -162,6 +162,20 @@ $path      = str_replace('\\', '/', mb_convert_encoding(urldecode($_SERVER['REQU
 $path      = preg_replace('/\?.*/', '', $path); // remove query
 $directory = basename(dirname(__FILE__));
 
+// Intercept Tip files
+$filename = basename($path);
+if (in_array(strtolower($filename), ['tipoftheday.txt', 'guildtip.txt'])) {
+    $filePath = dirname(__FILE__) . '/' . (strtolower($filename) === 'tipoftheday.txt' ? 'tipOfTheDay.txt' : 'GuildTip.txt');
+    if (file_exists($filePath)) {
+        header('Status: 200 OK', true, 200);
+        header('Content-type: text/plain; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Cache-Control: no-cache');
+        readfile($filePath);
+        exit;
+    }
+}
+
 // Check Allowed directory
 if (!preg_match( '/\/('. $directory . '\/)?(data|BGM)\//', $path)) {
     Debug::write('Forbidden directory, you can just access files located in data and BGM folder.', 'error');

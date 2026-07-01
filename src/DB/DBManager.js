@@ -82,6 +82,12 @@ const JokeTable = [];
 const ScreamTable = [];
 
 /**
+ * @const {Array} tip tables
+ */
+const TipTable = [];
+const GuildTipTable = [];
+
+/**
  * @const {Array} map table
  * struct { string name; string mp3; object fog }
  */
@@ -822,8 +828,29 @@ class DB {
 		);
 
 		// Tips
-		// TODO: /tipoftheday.txt
-		// TODO: /GuildTip.txt
+		const onTipEnd = onLoad();
+		Client.loadFile('tipOfTheDay.txt', function(buffer) {
+			const data = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer;
+			const decoded = TextEncoding.decode(data);
+			const tips = decoded.split('#');
+			tips.forEach(t => {
+				const s = t.trim();
+				if (s) TipTable.push(s);
+			});
+			onTipEnd();
+		}, onTipEnd);
+
+		const onGuildTipEnd = onLoad();
+		Client.loadFile('GuildTip.txt', function(buffer) {
+			const data = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer;
+			const decoded = TextEncoding.decode(data);
+			const tips = decoded.split('#');
+			tips.forEach(t => {
+				const s = t.trim();
+				if (s) GuildTipTable.push(s);
+			});
+			onGuildTipEnd();
+		}, onGuildTipEnd);
 
 		loadXMLFile(
 			'data/pettalktable.xml',
@@ -859,6 +886,14 @@ class DB {
 			module.default.initAI(onAIDriverLoaded);
 		});
 	}
+	static getTips() {
+		return TipTable;
+	}
+
+	static getGuildTips() {
+		return GuildTipTable;
+	}
+
 	static getHOAI_VM() {
 		return HO_AI;
 	}
