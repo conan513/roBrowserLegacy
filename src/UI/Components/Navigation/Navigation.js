@@ -21,6 +21,7 @@ import DB from 'DB/DBManager.js';
 import htmlText from './Navigation.html?raw';
 import cssText from './Navigation.css?raw';
 import MapPathFinder from './MapPathFinder.js';
+import NaviArrow from 'Renderer/Map/NaviArrow.js';
 
 /**
  * Create Navigation component
@@ -264,6 +265,8 @@ function initializePathFindingWorker() {
 					if (_finalTargetData && data.path && data.workerId === _pathFindingWorker.id) {
 						const mapName = getCurrentMap();
 						_path = data.path;
+						// Update 3D ground arrows
+						NaviArrow.setPath(_path);
 						if (_path.length > 0) {
 							this.updateTargetText();
 							this.setTargetCoordinatesBlinking(false);
@@ -724,6 +727,16 @@ Navigation.clearPath = function clearPath() {
 	_path = [];
 	_lastPathUpdate = 0;
 	_pathUpdateLock = false;
+	// Clear 3D ground arrows
+	NaviArrow.setPath([]);
+};
+
+/**
+ * Return the current navigation path (array of {x, y} objects).
+ * Used by external renderers (e.g. NaviArrow) for initial setup.
+ */
+Navigation.getPath = function getPath() {
+	return _path;
 };
 
 /**

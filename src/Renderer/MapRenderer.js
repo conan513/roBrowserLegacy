@@ -53,6 +53,7 @@ import Blind from 'Renderer/Effects/Shaders/Blind.js';
 
 import Upsampling from 'Renderer/Effects/Shaders/Upsampling.js';
 import WebGL from 'Utils/WebGL.js';
+import NaviArrow from 'Renderer/Map/NaviArrow.js';
 
 const mat4 = glMatrix.mat4;
 const _pos = new Uint16Array(2);
@@ -182,6 +183,7 @@ class MapRenderer {
 		EntityManager.free();
 		EntityManager.clearLifeCache();
 		GridSelector.free(gl);
+		NaviArrow.free(gl);
 		Sounds.free();
 		Effects.free();
 		Ground.free(gl);
@@ -278,6 +280,9 @@ class MapRenderer {
 
 		Models.render(gl, modelView, projection, normalMat, fog, light);
 		AnimatedModels.render(gl, modelView, projection, normalMat, fog, light, tick);
+
+		// Render Navigation path arrows on the ground
+		NaviArrow.render(gl, modelView, projection, fog, tick);
 
 		// Render transparent elements before ground
 		ScreenEffectManager.render(gl, modelView, projection, fog, tick, true);
@@ -486,6 +491,7 @@ function onMapComplete(success, error) {
 	Damage.init(gl);
 	EffectManager.init(gl);
 	ScreenEffectManager.init(gl, worldResource);
+	NaviArrow.init(gl);
 	registerPostProcessModules(gl);
 	JoystickUI.onRestore();
 

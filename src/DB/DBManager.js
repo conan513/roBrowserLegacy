@@ -156,34 +156,34 @@ const SignBoardTranslatedTable = {};
 let SignBoardTable = {};
 
 /**
- * @const {Object} NaviMap Table
+ * @const {Array} NaviMap Table
  */
-const NaviMapTable = {};
+const NaviMapTable = [];
 
 /**
- * @const {Object} NaviMob Table
+ * @const {Array} NaviMob Table
  */
-const NaviMobTable = {};
+const NaviMobTable = [];
 
 /**
- * @const {Object} NaviNpc Table
+ * @const {Array} NaviNpc Table
  */
-const NaviNpcTable = {};
+const NaviNpcTable = [];
 
 /**
- * @const {Object} NaviLink Table
+ * @const {Array} NaviLink Table
  */
-const NaviLinkTable = {};
+const NaviLinkTable = [];
 
 /**
- * @const {Object} NaviLinkDistance Table
+ * @const {Array} NaviLinkDistance Table
  */
-const NaviLinkDistanceTable = {};
+const NaviLinkDistanceTable = [];
 
 /**
- * @const {Object} NaviNpcDistance Table
+ * @const {Array} NaviNpcDistance Table
  */
-const NaviNpcDistanceTable = {};
+const NaviNpcDistanceTable = [];
 
 /**
  * @const {Object} QuestInfo Table
