@@ -3297,6 +3297,9 @@ class DB {
 			// NaviNpcTable structure: [["map_name", npc_id, npc_type, class_id, "npc_name", "", x, y], ...]
 			for (let i = 0; i < NaviNpcTable.length; i++) {
 				const npc = NaviNpcTable[i];
+				if (!npc) {
+					continue;
+				}
 				const mapName = npc[0];
 				const npcId = npc[1];
 				const npcName = npc[4] || '';
@@ -3325,6 +3328,9 @@ class DB {
 			// NaviMobTable structure: [["map_name", spawn_id, mob_type, mob_class, "mob_name", "sprite_name", level, mob_info], ...]
 			for (let i = 0; i < NaviMobTable.length; i++) {
 				const mob = NaviMobTable[i];
+				if (!mob) {
+					continue;
+				}
 				const mapName = mob[0];
 				const mobId = mob[3]; // Using mob_class as the ID
 				const mobName = mob[4] || '';
@@ -6971,13 +6977,21 @@ function loadLuaValue(file_path, variable_name, callback, onEnd) {
 									return "\"" .. escape_str(value) .. "\""
 								elseif type(value) == "table" then
 									local is_array = true
-									local index = 1
+									local count = 0
 									for k, _ in pairs(value) do
-										if type(k) ~= "number" or k ~= index then
+										if type(k) ~= "number" or k < 1 or math.floor(k) ~= k then
 											is_array = false
 											break
 										end
-										index = index + 1
+										count = count + 1
+									end
+									if is_array then
+										for idx = 1, count do
+											if value[idx] == nil then
+												is_array = false
+												break
+											end
+										end
 									end
 
 									local result = {}

@@ -214,7 +214,7 @@ final class PathMapping
     {
         // Common mojibake patterns from Korean CP949 misread as Latin-1
         // Characters like À, Á, Â, Ã, Ä, Å, Æ, Ç, È, É, Ê, Ë, etc.
-        $mojibakePattern = '/[À-ÿ]{2,}/';
+        $mojibakePattern = '/[À-ÿ]{2,}/u';
         
         return preg_match($mojibakePattern, $path) === 1;
     }

@@ -8,3 +8,11 @@
 # Generated files
 path-mapping.json
 test_config.php
+
+# Large client files
+*.grf
+DATA.INI
+
+# Cache and logs
+/cache/*
+/logs/*

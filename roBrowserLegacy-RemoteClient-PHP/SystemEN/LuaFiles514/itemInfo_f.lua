@@ -2,7 +2,7 @@
 -- Continuated by llchrisll at https://github.com/llchrisll/ROenglishRE
 -- This file can be distributed, used and modified freely
 -- This file shouldn't be claimed as part of your project, unless you fork it from https://github.com/llchrisll/ROenglishRE
--- Last updated: 20240824
+-- Last updated: 20250515
 
 function main()
 	for ItemID, DESC in pairs(tbl) do
@@ -16,10 +16,22 @@ function main()
 		if not result == true then
 			return false, msg
 		end
-		for k, v in pairs(DESC.unidentifiedDescriptionName) do
-			result, msg = AddItemUnidentifiedDesc(ItemID, v)
-			if not result == true then
-				return false, msg
+		-- This exists only for ChangeMaterial.lub file, since Gravity decided to use the unidentifiedDescriptionName
+		-- for items, where the player does not have the required amount or none at all.
+		-- Thanks to Optimus for the report ;)
+		if DESC.unidentifiedDescriptionName[1] == "" then
+			for k, v in pairs(DESC.identifiedDescriptionName) do
+				result, msg = AddItemUnidentifiedDesc(ItemID, v)
+				if not result == true then
+					return false, msg
+				end
+			end
+		else 
+			for k, v in pairs(DESC.unidentifiedDescriptionName) do
+				result, msg = AddItemUnidentifiedDesc(ItemID, v)
+				if not result == true then
+					return false, msg
+				end
 			end
 		end
 		if (DisplayServer == 2 and DESC.Server ~= nil) or (DisplayCustomServer == 2 and DESC.Custom == true) or DisplayItemID == 1 then
@@ -32,6 +44,18 @@ function main()
 				AddItemIdentifiedDesc(ItemID, "^0000CCItem ID:^000000 "..ItemID)
 			end
 			AddItemIdentifiedDesc(ItemID, "________________________")
+		end
+		if RemoveWeight == true then
+			for k, v in pairs(DESC.identifiedDescriptionName) do
+				if string.find(v, 'Weight:^000000') ~= nil then
+					if string.find(tostring(DESC.identifiedDescriptionName[k-1]),'______') ~= nil then
+						table.remove(DESC.identifiedDescriptionName,(k-1))
+						table.remove(DESC.identifiedDescriptionName,(k-1))
+					else
+						table.remove(DESC.identifiedDescriptionName,k)
+					end
+				end
+			end
 		end
 		for k, v in pairs(DESC.identifiedDescriptionName) do
 			result, msg = AddItemIdentifiedDesc(ItemID, v)
@@ -60,6 +84,34 @@ function main()
 					AddItemIdentifiedDesc(ItemID, "<URL>" .. ItemDatabase["Custom"].Name .. "<INFO>" .. ItemDatabase["Custom"].URL .. ItemID .. "</INFO></URL>")
 				end
 			end
+		end
+		if DESC.EffectID~= nil then
+			result, msg = AddItemEffectInfo(ItemID, DESC.EffectID)
+			if not result == true then
+				return false, msg
+			end
+		end
+		if DESC.costume ~= nil then
+			result, msg = AddItemIsCostume(ItemID, DESC.costume)
+			if not result == true then
+				return false, msg
+			end
+		end
+		if DESC.PackageID ~= nil then
+			result = AddItemPackageID(ItemID, DESC.PackageID)
+			if not result then
+				return false, msg
+			end
+		end
+	end
+	return true, "good"
+end
+
+function main_server()
+	for ItemID, DESC in pairs(tbl) do
+		result, msg = AddItem(ItemID, DESC.identifiedDisplayName, DESC.slotCount)
+		if not result == true then
+			return false, msg
 		end
 	end
 	return true, "good"

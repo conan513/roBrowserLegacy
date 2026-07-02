@@ -67,9 +67,10 @@ final class StartupValidator
     const OPTIONAL_EXTENSIONS = ['gd', 'iconv'];
 
     /**
-     * GRF signature
+     * GRF signatures
      */
     const GRF_SIGNATURE = 'Master of Magic';
+    const GRF_SIGNATURE_EH = 'Event Horizon';
 
 
     /**
@@ -500,9 +501,11 @@ final class StartupValidator
                 ];
             }
 
-            // Check signature (first 16 bytes, null-terminated)
-            $signature = rtrim(substr($header, 0, 16), "\0");
-            if ($signature !== self::GRF_SIGNATURE) {
+            // Check signature (first 16 bytes, null-terminated at first \0)
+            $sigRaw = substr($header, 0, 16);
+            $nullPos = strpos($sigRaw, "\0");
+            $signature = ($nullPos !== false) ? substr($sigRaw, 0, $nullPos) : $sigRaw;
+            if ($signature !== self::GRF_SIGNATURE && $signature !== self::GRF_SIGNATURE_EH) {
                 fclose($fp);
                 return [
                     'valid' => false,
@@ -511,14 +514,21 @@ final class StartupValidator
                 ];
             }
 
-            // Parse header values
-            $tableOffset = unpack('V', substr($header, 30, 4))[1];
-            $seed = unpack('V', substr($header, 34, 4))[1];
-            $nFiles = unpack('V', substr($header, 38, 4))[1];
+            // Parse header values (version first, then layout-dependent fields)
             $version = unpack('V', substr($header, 42, 4))[1];
-
-            $fileCount = max($nFiles - $seed - 7, 0);
             $versionHex = '0x' . strtoupper(dechex($version));
+
+            if ($version === 0x300) {
+                // 0x300 (Event Horizon): tableOffset is 64-bit at offset 30, filecount at offset 38
+                $tableOffset = unpack('P', substr($header, 30, 8))[1];
+                $fileCount   = unpack('V', substr($header, 38, 4))[1];
+            } else {
+                // 0x200 (Master of Magic): tableOffset 32-bit at offset 30
+                $tableOffset = unpack('V', substr($header, 30, 4))[1];
+                $seed        = unpack('V', substr($header, 34, 4))[1];
+                $nFiles      = unpack('V', substr($header, 38, 4))[1];
+                $fileCount   = max($nFiles - $seed - 7, 0);
+            }
 
             // Check version
             if ($version !== 0x200 && $version !== 0x300) {
@@ -531,8 +541,17 @@ final class StartupValidator
             }
 
             // Validate file table (zlib compressed)
-            $fileTablePos = $tableOffset + 46;
+            // Grf.php uses fseek with SEEK_CUR (relative to after header read).
+            // HEADER_SIZE = 46. For 0x300 there's an extra 4-byte field before the table.
+            if ($version === 0x300) {
+                // tableOffset is relative; skip header (46) + tableOffset + 4-byte unknown field
+                $fileTablePos = 46 + $tableOffset + 4;
+            } else {
+                // tableOffset is relative to after the header (46 bytes)
+                $fileTablePos = 46 + $tableOffset;
+            }
             $fileTableValidation = $this->validateFileTable($fp, $fileTablePos, $fileCount);
+
 
             if (!$fileTableValidation['ok']) {
                 fclose($fp);

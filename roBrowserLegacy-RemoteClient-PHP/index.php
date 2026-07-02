@@ -14,6 +14,7 @@ require_once('HealthCheck.php');
 require_once('PathMapping.php');
 require_once('StartupValidator.php');
 $CONFIGS = require_once('configs.php');
+$GLOBALS['CONFIGS'] = $CONFIGS;
 
 // Apply configs
 if ($CONFIGS['DEBUG']) {
@@ -186,6 +187,7 @@ if (!preg_match( '/\/('. $directory . '\/)?(data|BGM)\//', $path)) {
 $path = preg_replace('/(.*('. $directory . '\/)?)(data|BGM\/.*)/', '$3', $path );
 $path = str_replace('/', '\\', $path);
 $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+Debug::write('Searching file hex: ' . bin2hex($path), 'info');
 $file = Client::getFile($path);
 
 

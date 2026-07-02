@@ -331,6 +331,7 @@ class Grf
 		// Normalize slashes
 		$filename = str_replace('/', '\\', $filename);
 		$encodedFilename = $this->encodeFilename($filename);
+		Debug::write('Grf::getFile in ' . $this->filename . ' encoding: "' . $this->encoding . '", input hex: ' . bin2hex($filename) . ', encoded filename hex: ' . bin2hex($encodedFilename), 'info');
 
 		// Case sensitive search (faster)
 		$position = strpos( $this->fileTable, $encodedFilename . "\0");

@@ -1,9 +1,11 @@
 <?php
 
+if (!function_exists('get_env_bool')) {
     function get_env_bool($name, $default) {
         $value = getenv($name);
         return $value !== false ? filter_var($value, FILTER_VALIDATE_BOOLEAN) : $default;
     }
+}
 
     return array(
 
