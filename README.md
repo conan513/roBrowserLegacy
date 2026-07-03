@@ -55,6 +55,10 @@ Remote Client serves game assets to roBrowser via http by extracting them from t
 
 - [roBrowserLegacy-RemoteClient-PHP](https://github.com/MrAntares/roBrowserLegacy-RemoteClient-PHP)
 
+If you want English in-game text on a Renewal client, you must provide English-translated Renewal GRFs (for example from a package such as `ROenglishRE`). The remote client only provides the GRF files you upload; it does not translate text automatically.
+
+This project also includes a `SystemEN/` folder in the remote client package with English translation files from `ROenglishRE` for browser-side access.
+
 Other implementations may arise and when they do we will list them here:
 
 - [roBrowserLegacy-RemoteClient-JS](https://github.com/FranciscoWallison/roBrowserLegacy-RemoteClient-JS)

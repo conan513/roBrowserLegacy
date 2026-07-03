@@ -224,6 +224,7 @@ final class StartupValidator
             ['path' => 'data', 'type' => 'dir', 'required' => false, 'name' => 'data/ folder'],
             ['path' => 'BGM', 'type' => 'dir', 'required' => false, 'name' => 'BGM/ folder'],
             ['path' => 'System', 'type' => 'dir', 'required' => false, 'name' => 'System/ folder'],
+            ['path' => 'SystemEN', 'type' => 'dir', 'required' => false, 'name' => 'SystemEN/ folder'],
             ['path' => 'AI', 'type' => 'dir', 'required' => false, 'name' => 'AI/ folder'],
             ['path' => 'logs', 'type' => 'dir', 'required' => false, 'name' => 'logs/ folder'],
         ];

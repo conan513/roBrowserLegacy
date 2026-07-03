@@ -178,13 +178,13 @@ if (in_array(strtolower($filename), ['tipoftheday.txt', 'guildtip.txt'])) {
 }
 
 // Check Allowed directory
-if (!preg_match( '/\/('. $directory . '\/)?(data|BGM)\//', $path)) {
-    Debug::write('Forbidden directory, you can just access files located in data and BGM folder.', 'error');
+if (!preg_match('/\/(?:' . preg_quote($directory, '/') . '\/)?(?:data|BGM|SystemEN)\//', $path)) {
+    Debug::write('Forbidden directory, you can just access files located in data, BGM, and SystemEN folder.', 'error');
     Debug::output();
 }
 
 // Get file
-$path = preg_replace('/(.*('. $directory . '\/)?)(data|BGM\/.*)/', '$3', $path );
+$path = preg_replace('/^.*(?:' . preg_quote($directory, '/') . '\/)?((?:data|BGM|SystemEN)\/.*)$/', '$1', $path );
 $path = str_replace('/', '\\', $path);
 $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 Debug::write('Searching file hex: ' . bin2hex($path), 'info');

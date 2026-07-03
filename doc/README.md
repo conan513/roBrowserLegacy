@@ -334,8 +334,12 @@ TODO: improve this flow (important!)
         - [JS](https://github.com/FranciscoWallison/roBrowserLegacy-RemoteClient-JS)
 
 - copy your `.grf` under `resources` directory (only unencripted, 0x200 version is supported)
+- use GRF assets from an English-translated Renewal client or translation pack such as `ROenglishRE` if you want English in-game text. The remote client only serves the files you provide; plain Korean GRFs will still show Korean strings.
+- this package also includes a `SystemEN/` folder with English translation files from `ROenglishRE` for browser-side access. The remote client now serves `SystemEN/` files directly.
 - alternatively, if you don't want to use GRFs directly, then you can extract your GRFs into the `data` directory (not recommended, but it works fine)
 - copy your `DATA.INI` (GRF loading order) under `resources` directory
+- make sure `DATA.INI` preserves the correct override order, typically `custom.grf` / `rdata.grf` before `data.grf` for translation overrides to work.
+- if you are running a Renewal server, set `renewal: true` in your client or `clientinfo.xml`, and ensure the GRF pack matches the Renewal client version.
 - copy your BGM `.mp3` under `BGM` directory
 - copy your data directory under `data` directory
 - copy your System files under `System` directory

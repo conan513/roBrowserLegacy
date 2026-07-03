@@ -68,6 +68,12 @@ final class Client
 		'encoding' => 'CP949'
 	];
 
+	/**
+	 * @var int Index cache version.
+	 * Bump this when index-generation logic changes to invalidate old cache.
+	 */
+	static private $indexCacheVersion = 1;
+
 
 	/**
 	 * Initialize client file
@@ -141,7 +147,8 @@ final class Client
 		}
 
 		$grfs = $data_ini[$keys[$index]];
-		ksort($grfs);
+		// Preserve the original GRF order from DATA.INI.
+		// Later GRFs override earlier ones when indexing files.
 
 		Debug::write('File ' . $path . ' loaded.', 'success');
 		Debug::write('GRFs to use :', 'info');
@@ -168,8 +175,8 @@ final class Client
 
 	/**
 	 * Build file index from all GRFs for O(1) lookups
-	 * Files are indexed by normalized path (lowercase, forward slashes)
-	 * Later GRFs override earlier ones (same as original behavior)
+	 * Files are indexed by normalized path (lowercase, forward slashes).
+	 * Earlier GRFs are preserved, so the first matching GRF wins.
 	 */
 	static private function buildFileIndex()
 	{
@@ -208,11 +215,13 @@ final class Client
 				// Normalize path: lowercase, forward slashes
 				$normalizedPath = strtolower(str_replace('\\', '/', $filePath));
 
-				// Later GRFs override earlier ones (higher priority)
-				self::$fileIndex[$normalizedPath] = [
-					'grfIndex' => $grfIndex,
-					'originalPath' => $filePath
-				];
+				// Preserve the first occurrence so earlier GRFs win
+				if (!isset(self::$fileIndex[$normalizedPath])) {
+					self::$fileIndex[$normalizedPath] = [
+						'grfIndex' => $grfIndex,
+						'originalPath' => $filePath
+					];
+				}
 				$totalFiles++;
 			}
 		}
@@ -264,7 +273,10 @@ final class Client
 	 */
 	static private function getGrfIndexCacheKey()
 	{
-		$parts = [self::$indexCacheConfig['encoding']];
+		$parts = [
+			self::$indexCacheConfig['encoding'], 
+			self::$indexCacheVersion
+		];
 		foreach (self::$grfs as $grf) {
 			$parts[] = $grf->filename . ':' . (file_exists($grf->filename) ? filemtime($grf->filename) : 0);
 		}

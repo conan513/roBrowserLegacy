@@ -26,6 +26,10 @@ Because pushing directly the fullclient on a server/ftp can provoke some errors,
 Just put your GRFs files and DATA.INI file in the `resources/` directory.
 Overwrite the `BGM/`, `data/` and `System/` directories with your own folders.
 
+If you want English text, use English-translated GRFs such as those from `ROenglishRE` or another English RE package. The remote client itself does not translate the game; it only serves the GRFs that you provide.
+
+This repository already includes a `SystemEN/` folder with English translation files from `ROenglishRE` for browser-side data loading. Requests for `SystemEN/` files are now allowed by the remote client.
+
 **Note: to be sure to use a compatible version of your GRFs, download *GRF Builder* and repack them manually (Option > Repack type > Repack), it will ensure the GRFs files are converted in the proper version**
 
 ### 2. Run diagnostics
