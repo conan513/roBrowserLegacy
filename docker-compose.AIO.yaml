@@ -231,7 +231,7 @@ services:
         networks:
             - ro-network
         ports:
-            - '8080:80'
+            - '8081:80'
         environment:
             - DEBUG=true
             - CLIENT_RESPATH=/var/www/html/resources/
