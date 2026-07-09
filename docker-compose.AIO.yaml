@@ -232,7 +232,18 @@ services:
             - ro-network
         ports:
             - '8081:80'
+        volumes:
+            - ./roBrowserLegacy-RemoteClient-PHP:/var/www/html
+            - ./roBrowserLegacy-RemoteClient-PHP/resources:/var/www/html/resources
+            - ./roBrowserLegacy-RemoteClient-PHP/BGM:/var/www/html/BGM:ro
+            - ./roBrowserLegacy-RemoteClient-PHP/System:/var/www/html/System:ro
+            - ./roBrowserLegacy-RemoteClient-PHP/SystemEN:/var/www/html/SystemEN:ro
+            - ./roBrowserLegacy-RemoteClient-PHP/data:/var/www/html/data
         environment:
-            - DEBUG=true
-            - CLIENT_RESPATH=/var/www/html/resources/
+            - DEBUG=false
+            - CLIENT_RESPATH=resources/
             - CLIENT_DATAINI=DATA.INI
+            - CACHE_ENABLED=true
+            - INDEX_CACHE_ENABLED=true
+            - CACHE_ENABLED=true
+            - INDEX_CACHE_ENABLED=true

@@ -311,9 +311,15 @@ final class StartupValidator
         $hasErrors = false;
         $results = [];
 
-        // Check DATA.INI path
-        $dataIniPath = $CONFIGS['CLIENT_RESPATH'] . $CONFIGS['CLIENT_DATAINI'];
+        // Check DATA.INI path (try multiple locations)
+        $dataIniPath = $CONFIGS['CLIENT_DATAINI'];
         $dataIniExists = file_exists($dataIniPath);
+        
+        // Try resources/ subdirectory if not found in root
+        if (!$dataIniExists) {
+            $dataIniPath = $CONFIGS['CLIENT_RESPATH'] . $CONFIGS['CLIENT_DATAINI'];
+            $dataIniExists = file_exists($dataIniPath);
+        }
 
         $results['DATA_INI'] = [
             'path' => $dataIniPath,

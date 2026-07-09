@@ -1,18 +1,40 @@
 <?php
-
-// Include library
-require_once('Debug.php');
-require_once('LRUCache.php');
-require_once('Grf.php');
-require_once('GrfDES.php');
-require_once('Bmp.php');
-require_once('Client.php');
-require_once('Compression.php');
-require_once('HttpCache.php');
-require_once('MissingFilesLog.php');
-require_once('HealthCheck.php');
-require_once('PathMapping.php');
-require_once('StartupValidator.php');
+/**
+ * DIRECT ACCESS
+ * Only show the friendly debug page when the request is for the site root
+ * or directly for index.php with no target file. Allow all other paths
+ * (like /data/..., /BGM/...) to be handled as file requests.
+ */
+$requestPathCheck = isset($_SERVER['REQUEST_URI']) ? parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) : '';
+if ($requestPathCheck === '' || $requestPathCheck === '/' || preg_match('#^/index\.php/?$#i', $requestPathCheck)) {
+    $envDebug = getenv('DEBUG');
+    $isDebug = ($envDebug !== false) ? filter_var($envDebug, FILTER_VALIDATE_BOOLEAN) : false;
+    if ($isDebug) {
+        require_once('Debug.php');
+        Debug::write('Direct access, no file requested ! You have to request a file (from the url), for example: <a href="data/clientinfo.xml">data/clientinfo.xml</a>', 'error');
+        Debug::output();
+    }
+    header('HTTP/1.1 404 Not Found');
+    echo 'Not found';
+    exit;
+}
+$required = [
+    'Debug.php',
+    'LRUCache.php',
+    'Grf.php',
+    'GrfDES.php',
+    'Bmp.php',
+    'Client.php',
+    'Compression.php',
+    'HttpCache.php',
+    'MissingFilesLog.php',
+    'HealthCheck.php',
+    'PathMapping.php',
+    'StartupValidator.php'
+];
+foreach ($required as $r) {
+    require_once($r);
+}
 $CONFIGS = require_once('configs.php');
 $GLOBALS['CONFIGS'] = $CONFIGS;
 
@@ -43,11 +65,16 @@ PathMapping::configure([
 
 
 Client::$path        =  '';
-Client::$data_ini    =  $CONFIGS['CLIENT_RESPATH'] . $CONFIGS['CLIENT_DATAINI'];
+Client::$data_ini    =  $CONFIGS['CLIENT_DATAINI'];
 Client::$AutoExtract =  (bool)$CONFIGS['CLIENT_AUTOEXTRACT'];
 
+// Debug: Log config values
+Debug::write('CACHE_ENABLED: ' . var_export($CONFIGS['CACHE_ENABLED'], true), 'info');
+Debug::write('INDEX_CACHE_ENABLED: ' . var_export($CONFIGS['INDEX_CACHE_ENABLED'], true), 'info');
 
 // Initialize client with cache configuration
+// Always initialize - the .htaccess rewrite will cause this to be called multiple times,
+// but init() is safe to call multiple times (it's idempotent with the $grfs array)
 ini_set('memory_limit', $CONFIGS['MEMORY_LIMIT']);
 Client::init($CONFIGS['CLIENT_ENABLESEARCH'], array(
     'enabled' => $CONFIGS['CACHE_ENABLED'],
@@ -55,13 +82,30 @@ Client::init($CONFIGS['CLIENT_ENABLESEARCH'], array(
     'maxMemoryMB' => $CONFIGS['CACHE_MAX_MEMORY_MB'],
 ), $CONFIGS['GRF_ENCODING']);
 
+// Debug: Log GRF status after init
+$indexStats = Client::getIndexStats();
+Debug::write('After init - GRF count: ' . $indexStats['grfCount'] . ', Unique files: ' . $indexStats['uniqueFiles'], 'info');
+if ($indexStats['grfCount'] > 0) {
+    foreach ($indexStats['grfs'] as $idx => $grf) {
+        Debug::write('  GRF[' . $idx . ']: ' . $grf['filename'] . ' - loaded: ' . ($grf['loaded'] ? 'yes' : 'no') . ', files: ' . $grf['fileCount'], 'info');
+    }
+} else {
+    Debug::write('  No GRFs loaded!', 'error');
+}
+
 
 /**
  * API ENDPOINTS
  * Handle API requests before file serving
  */
-$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+// Use the original request URI preserved by .htaccess rewrite, fallback to REQUEST_URI
+$requestUri = isset($_SERVER['REDIRECT_ORIGINAL_REQUEST_URI']) ? $_SERVER['REDIRECT_ORIGINAL_REQUEST_URI'] : (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
 $requestPath = parse_url($requestUri, PHP_URL_PATH);
+
+// Debug: Log request info
+Debug::write('REQUEST_URI: ' . $requestUri, 'info');
+Debug::write('REDIRECT_ORIGINAL_REQUEST_URI: ' . (isset($_SERVER['REDIRECT_ORIGINAL_REQUEST_URI']) ? $_SERVER['REDIRECT_ORIGINAL_REQUEST_URI'] : 'NOT SET'), 'info');
+Debug::write('REQUEST_PATH: ' . $requestPath, 'info');
 
 // Missing files endpoint: /api/missing-files
 if (preg_match('#/api/missing-files/?$#i', $requestPath)) {
@@ -148,14 +192,6 @@ if (isset($_POST['filter']) && is_string($_POST['filter'])) {
     die( implode("\n", $list) );
 }
 
-
-/**
- * DIRECT ACCESS
- */
-if (empty($_SERVER['REDIRECT_STATUS']) || $_SERVER['REDIRECT_STATUS'] != 404 || empty($_SERVER['REQUEST_URI'])) {
-    Debug::write('Direct access, no file requested ! You have to request a file (from the url), for example: <a href="data/clientinfo.xml">data/clientinfo.xml</a>', 'error');
-    Debug::output();
-}
 
 
 // Decode path

@@ -84,6 +84,9 @@ final class Client
 	 */
 	static public function init($search_data_dir, $cacheConfig = array(), $grfEncoding = 'CP949')
 	{
+		// Always initialize to load GRF files
+		// The $grfs array should be populated
+		
 		// Initialize LRU cache
 		self::initCache($cacheConfig);
 
@@ -123,9 +126,17 @@ final class Client
 
 		$path = self::$path . self::$data_ini;
 
+		// If the file doesn't exist in the configured path, try alternative locations
 		if (!file_exists($path)) {
-			Debug::write('File not found: ' . $path, 'error');
-			return;
+			// Try resources/ subdirectory
+			$resourcesPath = self::$path . 'resources/' . self::$data_ini;
+			if (file_exists($resourcesPath)) {
+				$path = $resourcesPath;
+				Debug::write('DATA.INI found in resources/: ' . $path);
+			} else {
+				Debug::write('File not found: ' . $path . ' or ' . $resourcesPath, 'error');
+				return;
+			}
 		}
 
 		if (!is_readable($path)) {
@@ -342,11 +353,40 @@ final class Client
 			'grfs' => []
 		];
 
+		// If the file index is already built (or loaded from cache), derive per-GRF
+		// file counts from the index mapping instead of calling GRF->getFileList()
+		$grfCounts = array_fill(0, max(1, count(self::$grfs)), 0);
+		if (!empty(self::$fileIndex)) {
+			foreach (self::$fileIndex as $meta) {
+				if (isset($meta['grfIndex'])) {
+					$idx = (int)$meta['grfIndex'];
+					if (!isset($grfCounts[$idx])) {
+						$grfCounts[$idx] = 0;
+					}
+					$grfCounts[$idx]++;
+				}
+			}
+		}
+
 		foreach (self::$grfs as $index => $grf) {
+			// Determine if the GRF file is present/readable on disk
+			$exists = false;
+			if (is_object($grf) && property_exists($grf, 'filename')) {
+				$exists = file_exists($grf->filename) && is_readable($grf->filename);
+			}
+
+			$fileCount = 0;
+			if (!empty(self::$fileIndex) && isset($grfCounts[$index])) {
+				$fileCount = $grfCounts[$index];
+			} else {
+				// Fallback: ask the GRF object (will return 0 if not loaded)
+				$fileCount = ($grf->loaded) ? count($grf->getFileList()) : 0;
+			}
+
 			$stats['grfs'][$index] = [
-				'filename' => $grf->filename,
-				'loaded' => $grf->loaded,
-				'fileCount' => $grf->loaded ? count($grf->getFileList()) : 0
+				'filename' => isset($grf->filename) ? $grf->filename : '',
+				'loaded' => ($grf->loaded) || $exists,
+				'fileCount' => $fileCount,
 			];
 		}
 

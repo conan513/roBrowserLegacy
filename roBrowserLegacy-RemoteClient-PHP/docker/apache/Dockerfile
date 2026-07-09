@@ -25,13 +25,16 @@ RUN <<'EOF' cat >> /etc/apache2/sites-available/000-default.conf
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 
+    # Pass environment variables to PHP
+    PassEnv DEBUG CLIENT_RESPATH CLIENT_DATAINI CACHE_ENABLED INDEX_CACHE_ENABLED GRF_ENCODING CACHE_MAX_FILES CACHE_MAX_MEMORY_MB CLIENT_ENABLESEARCH CLIENT_AUTOEXTRACT MEMORY_LIMIT COMPRESSION_ENABLED COMPRESSION_MIN_SIZE COMPRESSION_LEVEL PATH_MAPPING_ENABLED PATH_MAPPING_FILE MISSING_LOG_ENABLED MISSING_LOG_FILE MISSING_LOG_MAX_ENTRIES WARM_CACHE_ENABLED WARM_CACHE_MAX_FILES WARM_CACHE_MAX_MEMORY_MB INDEX_CACHE_DIR
+
     <IfModule mod_headers.c>
         Header set Access-Control-Allow-Origin "*"
         Header set Access-Control-Allow-Headers "X-Application"
     </IfModule>
     <Directory /var/www/html>
         Options +FollowSymLinks -MultiViews
-        AllowOverride None
+        AllowOverride All
         Require all granted
 
         <IfModule mod_rewrite.c>
