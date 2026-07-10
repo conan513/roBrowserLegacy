@@ -47,7 +47,10 @@ Viewer.init = function init() {
 	Thread.hook('THREAD_READY', () => {
 		const remoteClient = Configs.get('remoteClient');
 		if (remoteClient) {
-			Thread.send('SET_HOST', remoteClient);
+			Thread.send('SET_HOST', {
+				host: remoteClient,
+				version: Configs.get('version', '')
+			});
 			Client.init([]);
 		}
 	});

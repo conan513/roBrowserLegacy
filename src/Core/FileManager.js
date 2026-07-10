@@ -52,6 +52,12 @@ class FileManager {
 	static remoteClient = '';
 
 	/**
+	 * Asset version for cache busting
+	 * @var {string} version
+	 */
+	static version = '';
+
+	/**
 	 * List of Game Archives loads
 	 * @var {array} GameFile[]
 	 */
@@ -259,8 +265,15 @@ class FileManager {
 		// Don't load mp3 sounds to avoid blocking the queue
 		// They can be load by the HTML5 Audio
 		if (filename.match(/\.(mp3|wav)$/)) {
+			if (FileManager.version) {
+				url += '?v=' + encodeURIComponent(FileManager.version);
+			}
 			callback(url);
 			return;
+		}
+
+		if (FileManager.version) {
+			url += '?v=' + encodeURIComponent(FileManager.version);
 		}
 
 		// Use Fetch API for better performance and HTTP/2 multiplexing support

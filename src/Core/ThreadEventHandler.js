@@ -40,13 +40,21 @@ onmessage = function receive(event) {
 
 	switch (msg.type) {
 		// Modify client host
-		case 'SET_HOST':
-			if (msg.data.substr(-1) !== '/') {
-				msg.data += '/';
+		case 'SET_HOST': {
+			let host = msg.data;
+			let version = '';
+			if (msg.data && typeof msg.data === 'object') {
+				host = msg.data.host;
+				version = msg.data.version;
+			}
+			if (host.substr(-1) !== '/') {
+				host += '/';
 			}
 
-			FileManager.remoteClient = msg.data;
+			FileManager.remoteClient = host;
+			FileManager.version = version;
 			break;
+		}
 
 		// Save full client and use it
 		case 'CLIENT_INIT':

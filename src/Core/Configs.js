@@ -35,6 +35,10 @@ class Configs {
 			return _global[key];
 		}
 
+		if (typeof window !== 'undefined' && window.ROConfig && key in window.ROConfig) {
+			return window.ROConfig[key];
+		}
+
 		return defaultValue;
 	};
 	/**

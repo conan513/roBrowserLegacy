@@ -116,20 +116,30 @@ class HttpCache
         // Set ETag
         header('ETag: ' . $etag);
 
-        // Determine cache duration based on file type
-        if (in_array($ext, self::$immutableExtensions)) {
-            // Immutable assets - cache for 1 year
-            $maxAge = self::IMMUTABLE_MAX_AGE;
-            header('Cache-Control: public, max-age=' . $maxAge . ', immutable');
-        } else {
-            // Regular files - cache for 30 days
-            $maxAge = self::DEFAULT_MAX_AGE;
-            header('Cache-Control: public, max-age=' . $maxAge);
-        }
+        // Check if version cache-buster query parameter is present and not empty
+        $hasVersion = isset($_GET['v']) && !empty($_GET['v']);
 
-        // Set Expires header (for HTTP/1.0 compatibility)
-        $expires = gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT';
-        header('Expires: ' . $expires);
+        if ($hasVersion) {
+            // Determine cache duration based on file type
+            if (in_array($ext, self::$immutableExtensions)) {
+                // Immutable assets - cache for 1 year
+                $maxAge = self::IMMUTABLE_MAX_AGE;
+                header('Cache-Control: public, max-age=' . $maxAge . ', immutable');
+            } else {
+                // Regular files - cache for 30 days
+                $maxAge = self::DEFAULT_MAX_AGE;
+                header('Cache-Control: public, max-age=' . $maxAge);
+            }
+
+            // Set Expires header (for HTTP/1.0 compatibility)
+            $expires = gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT';
+            header('Expires: ' . $expires);
+        } else {
+            // No version parameter - require revalidation (use cache but check with server first)
+            header('Cache-Control: no-cache, public, max-age=0, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+        }
 
         // Set Last-Modified to now (since we don't track file modification times in GRF)
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
@@ -206,5 +216,59 @@ class HttpCache
         );
 
         return isset($mimeTypes[$ext]) ? $mimeTypes[$ext] : 'application/octet-stream';
+    }
+
+    /**
+     * Generate a unique asset version hash based on DATA.INI and the GRF files listed in it
+     *
+     * @param array $configs Configuration array
+     * @return string MD5 hash representing the asset state
+     */
+    public static function getAssetVersionHash($configs)
+    {
+        $respath = isset($configs['CLIENT_RESPATH']) ? $configs['CLIENT_RESPATH'] : 'resources/';
+        $dataini = isset($configs['CLIENT_DATAINI']) ? $configs['CLIENT_DATAINI'] : 'DATA.INI';
+
+        // Normalize directory separator
+        $respath = rtrim(str_replace('\\', '/', $respath), '/') . '/';
+        $path = $respath . $dataini;
+
+        if (!file_exists($path)) {
+            // Try fallback path
+            $path = $dataini;
+        }
+
+        $mtimes = array();
+        if (file_exists($path)) {
+            $mtimes[] = filemtime($path);
+
+            $data_ini = @parse_ini_file($path, true);
+            if ($data_ini) {
+                $keys = array_keys($data_ini);
+                $index = array_search('data', array_map('strtolower', $keys));
+                if ($index !== false) {
+                    $grfs = $data_ini[$keys[$index]];
+                    $dirname = dirname($path);
+                    foreach ($grfs as $grf_filename) {
+                        $grf_path = $dirname . '/' . $grf_filename;
+                        if (file_exists($grf_path)) {
+                            $mtimes[] = filemtime($grf_path);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Include configs.php mtime too
+        $configs_path = dirname(__FILE__) . '/configs.php';
+        if (file_exists($configs_path)) {
+            $mtimes[] = filemtime($configs_path);
+        }
+
+        if (empty($mtimes)) {
+            return '1.0.0';
+        }
+
+        return md5(implode(',', $mtimes));
     }
 }

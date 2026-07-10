@@ -112,6 +112,21 @@ if (preg_match('#/api/missing-files/?$#i', $requestPath)) {
     MissingFilesLog::outputJson();
 }
 
+// Version endpoint: /api/version
+if (preg_match('#/api/version/?$#i', $requestPath)) {
+    http_response_code(200);
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Access-Control-Allow-Origin: *');
+    
+    $version = HttpCache::getAssetVersionHash($CONFIGS);
+    
+    echo json_encode([
+        'version' => $version
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
 // Clear missing files log endpoint: /api/missing-files/clear (POST only)
 if (preg_match('#/api/missing-files/clear/?$#i', $requestPath) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');

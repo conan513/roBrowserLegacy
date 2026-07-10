@@ -106,7 +106,10 @@ class LoginEngine {
 
 		// Add support for remote client in server definition
 		if (remoteClient) {
-			Thread.send('SET_HOST', remoteClient);
+			Thread.send('SET_HOST', {
+				host: remoteClient,
+				version: Configs.get('version', '')
+			});
 
 			// Check if the selected server changed.
 			if (old_server != null && (old_server.address != _server.address || old_server.port != _server.port)) {

@@ -168,8 +168,10 @@ final class Client
 		foreach ($grfs as $index => $grf_filename) {
 			Debug::write($index . ') ' . $info['dirname'] . '/' . $grf_filename);
 
-			self::$grfs[$index] = new Grf($info['dirname'] . '/' . $grf_filename);
+			$grfFullPath = $info['dirname'] . '/' . $grf_filename;
+			self::$grfs[$index] = new Grf($grfFullPath);
 			self::$grfs[$index]->filename = $grf_filename;
+			self::$grfs[$index]->grfFullPath = $grfFullPath;
 			self::$grfs[$index]->setEncoding($grfEncoding);
 		}
 
@@ -289,7 +291,8 @@ final class Client
 			self::$indexCacheVersion
 		];
 		foreach (self::$grfs as $grf) {
-			$parts[] = $grf->filename . ':' . (file_exists($grf->filename) ? filemtime($grf->filename) : 0);
+			$fullPath = property_exists($grf, 'grfFullPath') ? $grf->grfFullPath : $grf->filename;
+			$parts[] = $grf->filename . ':' . (file_exists($fullPath) ? filemtime($fullPath) : 0);
 		}
 		return md5(implode('|', $parts));
 	}
@@ -467,10 +470,42 @@ final class Client
 		}
 
 		// Read from local data folder
-		if (file_exists($local_pathEncoded) && !is_dir($local_pathEncoded) && is_readable($local_pathEncoded)) {
+		// For .bmp files, also check if a pre-converted .png exists (auto-extract converts bmp→png)
+		$useLocal = false;
+		$local_pathToCheck = $local_pathEncoded;
+		if (!file_exists($local_pathEncoded) && strtolower(pathinfo($local_pathEncoded, PATHINFO_EXTENSION)) === 'bmp') {
+			$pngPath = substr($local_pathEncoded, 0, -3) . 'png';
+			if (file_exists($pngPath) && !is_dir($pngPath) && is_readable($pngPath)) {
+				$local_pathToCheck = $pngPath;
+			}
+		}
+
+		if (file_exists($local_pathToCheck) && !is_dir($local_pathToCheck) && is_readable($local_pathToCheck)) {
+			$useLocal = true;
+			$localMtime = filemtime($local_pathToCheck);
+			
+			// Check if any GRF is newer than the local file
+			foreach (self::$grfs as $grf) {
+				if (is_object($grf)) {
+					$grfPath = property_exists($grf, 'grfFullPath') ? $grf->grfFullPath : '';
+					if (empty($grfPath) && property_exists($grf, 'filename')) {
+						$grfPath = $grf->filename;
+					}
+					if (!empty($grfPath) && file_exists($grfPath)) {
+						if (filemtime($grfPath) > $localMtime) {
+							$useLocal = false;
+							Debug::write('Local file is stale compared to GRF: ' . basename($grfPath), 'info');
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if ($useLocal) {
 			Debug::write('File found at ' . $local_path, 'success');
 
-			$content = file_get_contents($local_pathEncoded);
+			$content = file_get_contents($local_pathToCheck);
 
 			// Add to cache
 			if (self::$cache !== null && $content !== false) {
@@ -484,7 +519,11 @@ final class Client
 
 			return $content;
 		} else {
-			Debug::write('File not found at ' . $local_path);
+			if (file_exists($local_pathToCheck) && !is_dir($local_pathToCheck)) {
+				Debug::write('File found locally but is stale compared to GRFs: ' . $local_path);
+			} else {
+				Debug::write('File not found at ' . $local_path);
+			}
 		}
 
 		// Use file index for O(1) lookup

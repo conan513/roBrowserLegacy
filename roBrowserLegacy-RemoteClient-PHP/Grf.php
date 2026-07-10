@@ -55,6 +55,11 @@ class Grf
 	public $filename = '';
 
 	/**
+	 * @var string full resolved path to the GRF file (set externally by Client.php)
+	 */
+	public $grfFullPath = '';
+
+	/**
 	 * @var int file size
 	 */
 	public $filesize = 0;

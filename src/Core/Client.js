@@ -52,7 +52,10 @@ class Client {
 
 		// GRF Host config
 		if (remoteClient) {
-			Thread.send('SET_HOST', remoteClient);
+			Thread.send('SET_HOST', {
+				host: remoteClient,
+				version: Configs.get('version', '')
+			});
 		}
 
 		// Save full client

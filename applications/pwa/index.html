@@ -184,19 +184,26 @@
 			window.addEventListener(
 				'load',
 				function () {
-					//Get latest GIT hash first then initialize
-					getJSON(
-						'https://api.github.com/repos/MrAntares/roBrowserLegacy/commits/master',
+					// Merge Config.js defaults with Config.local.js overrides to get remoteClient
+					var baseConfig = deepMerge({}, window.ROConfigBase || {});
+					if (window.ROConfigLocal) {
+						baseConfig = deepMerge(baseConfig, window.ROConfigLocal);
+					}
+					var remoteClient = baseConfig.remoteClient || (window.location.origin + '/remote-client/');
+					if (remoteClient.substr(-1) !== '/') {
+						remoteClient += '/';
+					}
+
+					// Get latest asset version hash from the remote client PHP
+						getJSON(
+						remoteClient + 'api/version?t=' + Date.now(),
 						function (err, data) {
-							if (err !== null) {
-								console.warn('Error reading latest GIT hash.');
+							if (err !== null || !data || !data.version) {
+								console.warn('Error reading latest asset version hash from remote client API. Using fallback.');
+								_gitHash = '1.0.0';
 							} else {
-								if (data && data.sha) {
-									_gitHash = data.sha;
-									console.log('Latest GIT hash: ' + _gitHash);
-								} else {
-									console.warn('No hash found in response');
-								}
+								_gitHash = data.version;
+								console.log('Latest asset version: ' + _gitHash);
 							}
 							_windowReady = true;
 							_tryInitialize();
